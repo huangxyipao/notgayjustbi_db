@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>账号溯源库</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+  <h1>账号溯源库</h1>
+  <input type="text" id="search" placeholder="搜索账号..." autocomplete="off">
+  <div id="count"></div>
+  <div id="list"></div>
+</div>
+
+<script>
+// ⬇️⬇️⬅️➡️⬇️⬇️ 把这里换成你的 SheetDB API 地址
+const API_URL = "https://sheetdb.io/api/v1/你自己的API";
+
+let allAccounts = [];
+
+// 读取数据
+fetch(API_URL)
+  .then(res => res.json())
+  .then(data => {
+    // 自动取第一列，不管叫什么名字
+    allAccounts = data.map(row => row[Object.keys(row)[0]]);
+    render(allAccounts);
+  });
+
+// 自动生成跳转链接
+function getLink(account) {
+  if (!account) return "#";
+  const s = account.trim().toLowerCase();
+  if (s.startsWith('@')) {
+    return "https://x.com/" + s.slice(1);
+  }
+  if (s.includes('bsky.social')) {
+    return "https://bsky.app/profile/" + s;
+  }
+  if (s.includes('instagram.com')) {
+    return "https://" + s;
+  }
+  return "#";
+}
+
+// 渲染列表
+function render(list) {
+  document.getElementById("count").textContent = `共 ${list.length} 条`;
+  document.getElementById("list").innerHTML = list.map(item => `
+    <div class="item">
+      <a href="${getLink(item)}" target="_blank">${item}</a>
+    </div>
+  `).join('');
+}
+
+// 搜索
+document.getElementById("search").addEventListener("input", e => {
+  const kw = e.target.value.toLowerCase();
+  const filtered = allAccounts.filter(a => 
+    a && a.toLowerCase().includes(kw)
+  );
+  render(filtered);
+});
+</script>
+
+</body>
+</html>
